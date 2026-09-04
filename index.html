@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fish Study | Interactive Experience</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #010a15;
+            color: #f8f9fa;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+        .canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Суретті экран өлшеміне қарай әдемі сыйғызады */
+        }
+        .content-overlay {
+            position: relative;
+            z-index: 2;
+            padding: 50px;
+            pointer-events: none;
+        }
+        h1 {
+            font-size: 5rem;
+            line-height: 0.9;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="canvas-container">
+        <canvas id="fishCanvas"></canvas>
+    </div>
+
+    <div class="content-overlay">
+        <h1>ТӨМЕН<br>ТҮСПЕЙДІ<br>СІЗДЕН КӨЗ.</h1>
+        <p>Тінтуірді экран бойымен сырғытыңыз. Балық қозғалысты бақылап, көзімен жүргізеді.</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('fishCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Папкаңыздағы сурет санына қарай осы санды өзгертуге болады (мысалы: 80 немесе 150)
+        const frameCount = 80;
+        const images = [];
+        let imagesLoaded = 0;
+
+        canvas.width = 800;
+        canvas.height = 800;
+
+        function currentFrame(index) {
+            const frameNum = String(index).padStart(3, '0');
+            return `frames/ezgif-frame-${frameNum}.jpg`;
+        }
+
+        for (let i = 1; i <= frameCount; i++) {
+            const img = new Image();
+            img.src = currentFrame(i);
+            img.onload = () => {
+                imagesLoaded++;
+                if (imagesLoaded === frameCount) {
+                    render(0);
+                }
+            };
+            // Қате кетпес үшін жүктелмей қалған суреттерді елемеу
+            img.onerror = () => {
+                imagesLoaded++;
+                if (imagesLoaded === frameCount) {
+                    render(0);
+                }
+            };
+            images.push(img);
+        }
+
+        const fish = { frame: 0 };
+
+        function render(index) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let safeIndex = Math.min(index, images.length - 1);
+            if (images[safeIndex] && images[safeIndex].complete && images[safeIndex].naturalWidth !== 0) {
+                ctx.drawImage(images[safeIndex], 0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            const xFraction = e.clientX / window.innerWidth;
+            const targetFrame = Math.min(frameCount - 1, Math.floor(xFraction * frameCount));
+            fish.frame = targetFrame;
+            requestAnimationFrame(() => render(fish.frame));
+        });
+    </script>
+</body>
+</html>
