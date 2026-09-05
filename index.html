@@ -1,124 +1,493 @@
 <!DOCTYPE html>
-<html lang="kk">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Study | Interactive Experience</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body, html {
-            width: 100%;
-            height: 100%;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: #010a15;
-            color: #f8f9fa;
-            overflow: hidden;
-            cursor: crosshair;
-        }
-        .canvas-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* Суретті экран өлшеміне қарай әдемі сыйғызады */
-        }
-        .content-overlay {
-            position: relative;
-            z-index: 2;
-            padding: 50px;
-            pointer-events: none;
-        }
-        h1 {
-            font-size: 5rem;
-            line-height: 0.9;
-            font-weight: 800;
-            letter-spacing: -2px;
-            margin-bottom: 20px;
-        }
-        p {
-            font-size: 1.2rem;
-            opacity: 0.8;
-            max-width: 400px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#03111f" />
+  <title>Abyss Bloom beneath®</title>
+  <style>
+    :root {
+      --ink: #eefcff;
+      --muted: rgba(238, 252, 255, .68);
+      --line: rgba(226, 250, 255, .28);
+      --cyan: #8beeff;
+      --deep: #03111f;
+      --x: 50%;
+      --y: 50%;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--deep);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100svh;
+      background: #020a13;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .hero {
+      position: relative;
+      width: 100%;
+      min-height: 100svh;
+      isolation: isolate;
+      overflow: hidden;
+      background: #03111f;
+    }
+
+    .hero__image {
+      position: absolute;
+      inset: -4%;
+      z-index: -6;
+      background-image: url('https://images.unsplash.com/photo-1642702020632-7b15c5c67a21?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=88&w=2600');
+      background-size: cover;
+      background-position: 67% 52%;
+      transform: scale(1.07);
+      filter: saturate(.82) contrast(1.08) brightness(.72);
+      transition: transform 1.4s cubic-bezier(.2,.8,.2,1), filter 1.2s ease;
+      will-change: transform;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -5;
+      background:
+        radial-gradient(circle at 68% 45%, rgba(51, 210, 233, .16), transparent 26%),
+        radial-gradient(circle at 35% 16%, rgba(150, 235, 255, .11), transparent 26%),
+        linear-gradient(90deg, rgba(0, 7, 16, .78) 0%, rgba(2, 17, 32, .44) 38%, rgba(1, 13, 26, .18) 66%, rgba(0, 6, 14, .46) 100%),
+        linear-gradient(180deg, rgba(1,8,17,.22), rgba(0,9,18,.17) 45%, rgba(0,4,11,.72));
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+      opacity: .28;
+      mix-blend-mode: screen;
+      background-image:
+        radial-gradient(circle at 18% 22%, rgba(255,255,255,.45) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 78% 64%, rgba(121,235,255,.5) 0 1px, transparent 1.7px),
+        radial-gradient(circle at 45% 83%, rgba(255,255,255,.35) 0 1px, transparent 1.4px);
+      background-size: 190px 190px, 240px 240px, 160px 160px;
+      animation: drift 18s linear infinite;
+    }
+
+    .caustics {
+      position: absolute;
+      inset: -22%;
+      z-index: -3;
+      pointer-events: none;
+      opacity: .22;
+      filter: blur(28px);
+      background:
+        repeating-radial-gradient(ellipse at 48% 0%, rgba(124,237,255,.22) 0 2%, transparent 4% 9%);
+      transform: rotate(-8deg) scale(1.25);
+      animation: caustic 15s ease-in-out infinite alternate;
+      mix-blend-mode: screen;
+    }
+
+    .cursor-glow {
+      position: absolute;
+      width: 38vw;
+      aspect-ratio: 1;
+      left: var(--x);
+      top: var(--y);
+      translate: -50% -50%;
+      z-index: -2;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(42px);
+      opacity: .22;
+      background: radial-gradient(circle, rgba(99, 227, 255, .34), rgba(8, 81, 111, .12) 34%, transparent 68%);
+      transition: left .2s linear, top .2s linear;
+    }
+
+    .shell {
+      position: relative;
+      width: 100%;
+      min-height: 100svh;
+      padding: 26px 34px 28px;
+      display: grid;
+      grid-template-columns: 1.3fr .62fr .8fr;
+      grid-template-rows: auto 1fr auto;
+      column-gap: clamp(24px, 4vw, 76px);
+    }
+
+    .topbar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 30px;
+      position: relative;
+      z-index: 20;
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .brand-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #eaffff;
+      box-shadow: 0 0 18px rgba(142,239,255,.95);
+    }
+
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: clamp(22px, 4vw, 58px);
+    }
+
+    .nav a, .meta a {
+      opacity: .76;
+      transition: opacity .25s ease, text-shadow .25s ease;
+    }
+
+    .nav a:hover, .meta a:hover {
+      opacity: 1;
+      text-shadow: 0 0 16px rgba(115,231,255,.85);
+    }
+
+    .meta {
+      justify-self: end;
+      display: flex;
+      gap: 32px;
+    }
+
+    .title-wrap {
+      grid-column: 1;
+      grid-row: 2;
+      align-self: center;
+      z-index: 2;
+      margin-top: 3vh;
+    }
+
+    h1 {
+      font-size: clamp(82px, 10.7vw, 184px);
+      line-height: .74;
+      letter-spacing: -.075em;
+      font-weight: 800;
+      color: #f5ffff;
+      text-wrap: balance;
+      text-shadow:
+        0 0 6px rgba(255,255,255,.72),
+        0 0 24px rgba(99,226,255,.38),
+        0 0 70px rgba(9,83,153,.46),
+        0 14px 50px rgba(0,5,16,.66);
+      filter: drop-shadow(0 1px 0 rgba(255,255,255,.15));
+    }
+
+    h1 span { display: block; }
+    h1 .small-line {
+      font-size: .36em;
+      line-height: 1.45;
+      letter-spacing: -.03em;
+      margin-top: .33em;
+      font-weight: 650;
+    }
+
+    .lists {
+      grid-column: 2 / 4;
+      grid-row: 2;
+      align-self: center;
+      justify-self: stretch;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(30px, 7vw, 110px);
+      padding-left: clamp(0px, 3vw, 54px);
+      margin-top: 5vh;
+      z-index: 3;
+    }
+
+    .list { list-style: none; }
+    .list li {
+      margin-bottom: 11px;
+      font-size: clamp(11px, .9vw, 14px);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(235,252,255,.78);
+      text-shadow: 0 2px 18px rgba(0, 21, 40, .9);
+    }
+
+    .list li::before {
+      content: "";
+      display: inline-block;
+      width: 15px;
+      height: 1px;
+      margin: 0 11px 4px 0;
+      background: rgba(186,242,255,.48);
+    }
+
+    .bottom-left {
+      grid-column: 1;
+      grid-row: 3;
+      align-self: end;
+      font-size: clamp(28px, 3vw, 52px);
+      letter-spacing: -.055em;
+      font-weight: 570;
+      text-shadow: 0 0 26px rgba(87,214,255,.26);
+    }
+
+    .bottom-center {
+      grid-column: 2;
+      grid-row: 3;
+      align-self: end;
+      font-size: 10px;
+      line-height: 1.6;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(232,250,255,.5);
+      max-width: 180px;
+    }
+
+    .bottom-right {
+      grid-column: 3;
+      grid-row: 3;
+      justify-self: end;
+      align-self: end;
+      display: flex;
+      align-items: flex-end;
+      gap: clamp(22px, 4vw, 64px);
+    }
+
+    .surface-copy {
+      font-size: clamp(24px, 2.6vw, 44px);
+      line-height: .88;
+      letter-spacing: -.045em;
+      text-align: right;
+      font-weight: 520;
+      text-shadow: 0 2px 25px rgba(0,14,31,.9);
+    }
+
+    .dive {
+      position: relative;
+      border: 1px solid rgba(224, 251, 255, .55);
+      background: linear-gradient(135deg, rgba(222,252,255,.18), rgba(82,215,236,.08));
+      color: #f5ffff;
+      padding: 12px 18px 13px;
+      border-radius: 999px;
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 0 30px rgba(89,225,255,.20);
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform .3s ease, box-shadow .3s ease, background .3s ease;
+    }
+
+    .dive::before {
+      content: "";
+      position: absolute;
+      inset: -60% 45% -60% -60%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+      transform: rotate(15deg) translateX(-130%);
+      transition: transform .7s ease;
+    }
+
+    .dive:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, rgba(220,252,255,.25), rgba(92,223,245,.12));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 0 42px rgba(80,225,255,.32);
+    }
+    .dive:hover::before { transform: rotate(15deg) translateX(220%); }
+
+    .edge-line {
+      position: absolute;
+      left: 34px;
+      right: 34px;
+      bottom: 18px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255,255,255,.2), transparent 35%, transparent 70%, rgba(138,237,255,.16));
+      opacity: .65;
+    }
+
+    @keyframes drift {
+      from { transform: translate3d(0, 0, 0); }
+      to { transform: translate3d(90px, -130px, 0); }
+    }
+
+    @keyframes caustic {
+      0% { transform: rotate(-8deg) scale(1.25) translate3d(-2%, -1%, 0); opacity: .12; }
+      100% { transform: rotate(-2deg) scale(1.34) translate3d(4%, 2%, 0); opacity: .3; }
+    }
+
+    @media (max-width: 900px) {
+      .hero__image { background-position: 63% 50%; inset: -2%; }
+      .shell {
+        padding: 20px 20px 22px;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto 1fr auto auto;
+      }
+      .topbar { grid-template-columns: auto 1fr; }
+      .brand-dot { display: block; }
+      .nav { justify-content: flex-end; gap: 18px; font-size: 10px; }
+      .meta { display: none; }
+      .title-wrap {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        align-self: center;
+        margin-top: -4vh;
+      }
+      h1 { font-size: clamp(72px, 18vw, 130px); max-width: 92vw; }
+      h1 .small-line { font-size: .34em; }
+      .lists {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        grid-template-columns: 1fr 1fr;
+        padding-left: 0;
+        margin: 0 0 5vh;
+        gap: 22px;
+      }
+      .list li { font-size: 9px; margin-bottom: 7px; }
+      .list li::before { width: 9px; margin-right: 6px; }
+      .bottom-left { grid-column: 1; grid-row: 4; font-size: 30px; }
+      .bottom-center { display: none; }
+      .bottom-right { grid-column: 2; grid-row: 4; gap: 14px; }
+      .surface-copy { font-size: 25px; }
+      .dive { padding: 10px 14px; font-size: 9px; }
+      .edge-line { left: 20px; right: 20px; bottom: 12px; }
+    }
+
+    @media (max-width: 560px) {
+      .shell { padding: 18px 16px 18px; }
+      .nav { gap: 12px; }
+      .nav a:nth-child(3) { display: none; }
+      .hero__image {
+        background-position: 61% center;
+        filter: saturate(.78) contrast(1.12) brightness(.62);
+      }
+      .hero::before {
+        background:
+          radial-gradient(circle at 62% 43%, rgba(75,214,239,.13), transparent 28%),
+          linear-gradient(180deg, rgba(1,7,15,.30), rgba(1,9,19,.23) 44%, rgba(0,5,13,.72));
+      }
+      h1 { font-size: clamp(67px, 22vw, 104px); line-height: .76; }
+      .lists { margin-bottom: 3vh; gap: 10px; }
+      .list li { font-size: 8px; letter-spacing: .045em; }
+      .surface-copy { display: none; }
+      .bottom-right { justify-self: end; }
+      .cursor-glow { width: 75vw; opacity: .18; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hero::after, .caustics { animation: none; }
+      .hero__image { transition: none; }
+    }
+  </style>
 </head>
 <body>
+  <main class="hero" id="hero">
+    <div class="hero__image" id="heroImage" aria-hidden="true"></div>
+    <div class="caustics" aria-hidden="true"></div>
+    <div class="cursor-glow" aria-hidden="true"></div>
 
-    <div class="canvas-container">
-        <canvas id="fishCanvas"></canvas>
+    <div class="shell">
+      <header class="topbar">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <nav class="nav" aria-label="Primary navigation">
+          <a href="#">Tides</a>
+          <a href="#">Abyss</a>
+          <a href="#">Reef Log</a>
+          <a href="#">Dive</a>
+        </nav>
+        <div class="meta">
+          <a href="#">Surface</a>
+          <a href="#">Signal</a>
+        </div>
+      </header>
+
+      <section class="title-wrap" aria-label="Abyss Bloom beneath">
+        <h1>
+          <span>Abyss</span>
+          <span>Bloom</span>
+          <span class="small-line">beneath®</span>
+        </h1>
+      </section>
+
+      <section class="lists" aria-label="Ocean index">
+        <ul class="list">
+          <li>Deep Sea</li>
+          <li>Biolume</li>
+          <li>Soft Current</li>
+          <li>Coral Drift</li>
+          <li>Midnight Blue</li>
+        </ul>
+        <ul class="list">
+          <li>Ink Trails</li>
+          <li>Velvet Water</li>
+          <li>Reef Shadows</li>
+          <li>Moonlit Kelp</li>
+          <li>Abyssal Calm</li>
+          <li>Salt Air</li>
+          <li>Hidden Worlds</li>
+        </ul>
+      </section>
+
+      <div class="bottom-left">3000m</div>
+      <div class="bottom-center">A quiet index of pressure, light, motion and living shadow.</div>
+
+      <div class="bottom-right">
+        <button class="dive" id="diveBtn" type="button">dive in</button>
+        <div class="surface-copy">Below the<br />surface</div>
+      </div>
+
+      <div class="edge-line" aria-hidden="true"></div>
     </div>
+  </main>
 
-    <div class="content-overlay">
-        <h1>ТӨМЕН<br>ТҮСПЕЙДІ<br>СІЗДЕН КӨЗ.</h1>
-        <p>Тінтуірді экран бойымен сырғытыңыз. Балық қозғалысты бақылап, көзімен жүргізеді.</p>
-    </div>
+  <script>
+    const hero = document.getElementById('hero');
+    const heroImage = document.getElementById('heroImage');
+    const diveBtn = document.getElementById('diveBtn');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    <script>
-        const canvas = document.getElementById('fishCanvas');
-        const ctx = canvas.getContext('2d');
+    if (!reduceMotion) {
+      window.addEventListener('pointermove', (event) => {
+        const x = event.clientX / window.innerWidth;
+        const y = event.clientY / window.innerHeight;
+        hero.style.setProperty('--x', `${event.clientX}px`);
+        hero.style.setProperty('--y', `${event.clientY}px`);
 
-        // Папкаңыздағы сурет санына қарай осы санды өзгертуге болады (мысалы: 80 немесе 150)
-        const frameCount = 80;
-        const images = [];
-        let imagesLoaded = 0;
+        const moveX = (x - .5) * -18;
+        const moveY = (y - .5) * -12;
+        heroImage.style.transform = `scale(1.09) translate3d(${moveX}px, ${moveY}px, 0)`;
+      }, { passive: true });
 
-        canvas.width = 800;
-        canvas.height = 800;
+      window.addEventListener('pointerleave', () => {
+        heroImage.style.transform = 'scale(1.07) translate3d(0,0,0)';
+      });
+    }
 
-        function currentFrame(index) {
-            const frameNum = String(index).padStart(3, '0');
-            return `frames/ezgif-frame-${frameNum}.jpg`;
-        }
+    diveBtn.addEventListener('click', () => {
+      hero.animate([
+        { filter: 'brightness(1)', transform: 'scale(1)' },
+        { filter: 'brightness(.62) saturate(1.35)', transform: 'scale(1.012)' },
+        { filter: 'brightness(1)', transform: 'scale(1)' }
+      ], {
+        duration: 1100,
+        easing: 'cubic-bezier(.2,.8,.2,1)'
+      });
 
-        for (let i = 1; i <= frameCount; i++) {
-            const img = new Image();
-            img.src = currentFrame(i);
-            img.onload = () => {
-                imagesLoaded++;
-                if (imagesLoaded === frameCount) {
-                    render(0);
-                }
-            };
-            // Қате кетпес үшін жүктелмей қалған суреттерді елемеу
-            img.onerror = () => {
-                imagesLoaded++;
-                if (imagesLoaded === frameCount) {
-                    render(0);
-                }
-            };
-            images.push(img);
-        }
-
-        const fish = { frame: 0 };
-
-        function render(index) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let safeIndex = Math.min(index, images.length - 1);
-            if (images[safeIndex] && images[safeIndex].complete && images[safeIndex].naturalWidth !== 0) {
-                ctx.drawImage(images[safeIndex], 0, 0, canvas.width, canvas.height);
-            }
-        }
-
-        window.addEventListener('mousemove', (e) => {
-            const xFraction = e.clientX / window.innerWidth;
-            const targetFrame = Math.min(frameCount - 1, Math.floor(xFraction * frameCount));
-            fish.frame = targetFrame;
-            requestAnimationFrame(() => render(fish.frame));
-        });
-    </script>
+      diveBtn.textContent = 'deeper';
+      setTimeout(() => { diveBtn.textContent = 'dive in'; }, 1800);
+    });
+  </script>
 </body>
 </html>
